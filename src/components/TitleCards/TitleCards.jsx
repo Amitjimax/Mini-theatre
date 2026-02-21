@@ -1,12 +1,24 @@
-import React from 'react'
+import React, { useEffect,useRef } from 'react'
 import './TitleCards.css'
 import cards_data from '../../assets/cards/Cards_data'
 
-const TitleCards = () => {
+
+
+const TitleCards = ({title, category}) => {  
+const cardsRef =useRef();
+
+const handlewheel = (event)=>{
+  event.preventDefault();
+  cardsRef.current.scrollLeft += event.deltaY;
+}
+
+useEffect(()=>{
+  cardsRef.current.addEventListener('wheel',handlewheel);
+},[])
   return (
     <div className='title-cards'>
-      <h2>Popular on Mini Theater</h2>
-      <div className='card-list'> 
+      <h2>{title? title:"Popular on Mini Theater"}</h2>
+      <div className='card-list' ref={cardsRef}>
         {
           cards_data.map((card,index)=>{
             return <div className='card' key={index}>
