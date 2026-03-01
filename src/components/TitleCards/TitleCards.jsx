@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import './TitleCards.css'
 import cards_data from '../../assets/cards/Cards_data'
+import { Link } from 'react-router-dom';
 
 const TitleCards = ({ title, category }) => {
   const [apiData, setApiData] = useState([]);
@@ -38,7 +39,7 @@ const TitleCards = ({ title, category }) => {
       currentRef.addEventListener('wheel', handlewheel);
     }
 
-    // ✅ cleanup (VERY IMPORTANT)
+
     return () => {
       if (currentRef) {
         currentRef.removeEventListener('wheel', handlewheel);
@@ -46,20 +47,21 @@ const TitleCards = ({ title, category }) => {
     };
   }, []);
 
-  return (
+  return (    
     <div className="title-cards">
       <h2>{title ? title : "Popular on Mini Theater"}</h2>
 
       <div className="card-list" ref={cardsRef}>
-        {apiData.map((card) => (
-          <div className="card" key={card.id}>
+        {apiData.map((card,index) => {
+          return <Link to={`/player/${card.id}`} className="card" key={index}>
             <img
               src={`https://image.tmdb.org/t/p/w500` + card.backdrop_path}
               alt={card.original_title}
             />
             <p>{card.original_title}</p>
-          </div>
-        ))}
+          </Link>
+        }
+        )}
       </div>
     </div>
   );
