@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const navRef = useRef();
+  const searchRef = useRef(); // ✅ for outside click
   const navigate = useNavigate();
 
   const [showDropdown, setShowDropdown] = useState(false);
@@ -17,7 +18,9 @@ const Navbar = () => {
   const [searchText, setSearchText] = useState("");
   const [movies, setMovies] = useState([]);
 
-  // Scroll effect
+  const API_KEY = "c1d619ddf5bd92a89665b1ead84fc1cb";
+
+  // ✅ Scroll effect
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY >= 80) {
@@ -31,23 +34,26 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Fetch movies using TMDB v3 API
+  // ✅ Debounced search (Netflix style)
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      fetchMovies(searchText);
+    }, 400);
+
+    return () => clearTimeout(delay);
+  }, [searchText]);
+
+  // ✅ Fetch movies
   const fetchMovies = async (query) => {
     if (!query) {
       setMovies([]);
       return;
     }
-    try {
-      const API_KEY = "c1d619ddf5bd92a89665b1ead84fc1cb";
 
+    try {
       const res = await fetch(
         `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}`
       );
-
-      if (!res.ok) {
-        console.error("Network response not ok");
-        return;
-      }
 
       const data = await res.json();
       setMovies(data.results || []);
@@ -56,14 +62,27 @@ const Navbar = () => {
     }
   };
 
+  // ✅ Close search on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowSearch(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleSearchClick = () => {
     setShowSearch(!showSearch);
-    setMovies([]);
     setSearchText("");
+    setMovies([]);
   };
 
   return (
     <div ref={navRef} className="navbar">
+
       {/* LEFT */}
       <div className="navbar-left">
         <img
@@ -77,14 +96,16 @@ const Navbar = () => {
           <li onClick={() => navigate('/tv-shows')}>TV Shows</li>
           <li onClick={() => navigate('/movies')}>Movies</li>
           <li onClick={() => navigate('/new-popular')}>New & Popular</li>
-          <li onClick={() => navigate('/my-list')}>My List</li>
+          <li onClick={() => navigate('/mylist')}>My List</li> {/* ✅ fixed */}
           <li onClick={() => navigate('/browse-by-language')}>Browse by Language</li>
+          
         </ul>
       </div>
 
       {/* RIGHT */}
-      <div className="navbar-right">
-        {/* Search Icon */}
+      <div className="navbar-right" ref={searchRef}>
+        
+        {/* 🔍 Search Icon */}
         <img
           src={search_icon}
           alt="Search"
@@ -92,22 +113,19 @@ const Navbar = () => {
           onClick={handleSearchClick}
         />
 
-        {/* Search Box */}
+        {/* 🔍 Search Box */}
         {showSearch && (
           <input
             type="text"
             placeholder="Search movies..."
             className="search-box"
             value={searchText}
-            onChange={(e) => {
-              const value = e.target.value;
-              setSearchText(value);
-              fetchMovies(value);
-            }}
+            onChange={(e) => setSearchText(e.target.value)}
+            autoFocus
           />
         )}
 
-        {/* Search Results */}
+        {/* 🔍 Results */}
         {showSearch && movies.length > 0 && (
           <div className="search-results">
             {movies.map((movie) => (
@@ -133,13 +151,12 @@ const Navbar = () => {
           </div>
         )}
 
-        {/* Children */}
         <p style={{ cursor: 'pointer' }}>Children</p>
 
-        {/* Bell */}
+        {/* 🔔 Bell */}
         <img src={bell_icon} alt="Notifications" className="icons" />
 
-        {/* Profile */}
+        {/* 👤 Profile */}
         <div
           className="navbar-profile"
           onClick={() => setShowDropdown(!showDropdown)}

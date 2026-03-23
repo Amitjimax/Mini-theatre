@@ -1,56 +1,103 @@
-  import React from 'react'
-  import './Home.css'
-  import NavBar from '../../components/Navbar/Navbar'
-  import hero_banner from '../../assets/hero_banner.jpg'
-  import hero_title from '../../assets/hero_title.png'
-  import play_icon from '../../assets/play_icon.png'
-  import info_icon from '../../assets/info_icon.png'
-  import TitleCards from '../../components/TitleCards/TitleCards'
-  import Footer from '../../components/Footer/Footer'
+import React, { useEffect, useState } from 'react'
+import './Home.css'
+import NavBar from '../../components/Navbar/Navbar'
+import play_icon from '../../assets/play_icon.png'
+import info_icon from '../../assets/info_icon.png'
+import TitleCards from '../../components/TitleCards/TitleCards'
+import Footer from '../../components/Footer/Footer'
+import { useNavigate } from 'react-router-dom'
 
-  const Home = () => {
-    return (
-      <div className='home'>
-        <NavBar />
+const Home = () => {
 
-        <div className="hero">
-          <img src={hero_banner} alt="" className='banner-img' />
+  const [banner, setBanner] = useState(null)
+  const navigate = useNavigate()
 
-          <div className="hero-caption">
-            <img src={hero_title} alt="" className='caption-img' />
+  const API_KEY = "c1d619ddf5bd92a89665b1ead84fc1cb"
 
-            <p>
-              Discovering his ties to a secret ancient order,
-              a young man living in modern Istanbul embarks on a quest
-              to save the city from an immortal enemy
-            </p>
+  // 🎬 Fetch dynamic banner
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const res = await fetch(
+          `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}`
+        )
+        const data = await res.json()
 
-            <div className="hero-btns">
-              <button className='btn'>
-                <img src={play_icon} alt="" />
-                Play
-              </button>
+        const randomMovie =
+          data.results[Math.floor(Math.random() * data.results.length)]
 
-              <button className='btn dark-btn'>
-                <img src={info_icon} alt="" />
-                More Info
-              </button>
-            </div>
+        setBanner(randomMovie)
+      } catch (err) {
+        console.error(err)
+      }
+    }
 
-            <TitleCards />
+    fetchBanner()
+  }, [])
+
+  return (
+    <div className='home'>
+      <NavBar />
+
+      {/* 🎬 HERO SECTION */}
+      <div className="hero">
+
+        {/* ✅ Dynamic Background */}
+        {banner && (
+          <img
+            src={`https://image.tmdb.org/t/p/original${banner.backdrop_path}`}
+            alt=""
+            className='banner-img'
+          />
+        )}
+
+        <div className="hero-caption">
+
+          {/* ✅ Dynamic Title */}
+          <h1>{banner?.title}</h1>
+
+          {/* ✅ Dynamic Description */}
+          <p>
+            {banner?.overview?.slice(0, 150)}...
+          </p>
+
+          <div className="hero-btns">
+
+            {/* ▶ PLAY */}
+            <button
+              className='btn'
+              onClick={() => navigate(`/movie/${banner?.id}`)}
+            >
+              <img src={play_icon} alt="" />
+              Play
+            </button>
+
+            {/* ℹ MORE INFO */}
+            <button
+              className='btn dark-btn'
+              onClick={() => navigate(`/movie/${banner?.id}`)}
+            >
+              <img src={info_icon} alt="" />
+              More Info
+            </button>
           </div>
-        </div>
 
-        <div className="more-card">
-          <TitleCards title={"Blockbuster Movies"} category={"top_rated"} />
-          <TitleCards title={"Only on Mini-Threater"} category={"popular"} />
-          <TitleCards title={"Upcoming"} category={"upcoming"} />
-          <TitleCards title={"Top pics for You"} category={"now_playing"} />
+          {/* 🔥 KEEP YOUR EXISTING */}
+          <TitleCards />
         </div>
-
-        <Footer />
       </div>
-    )
-  }
 
-  export default Home
+      {/* 🎬 MORE SECTIONS */}
+      <div className="more-card">
+        <TitleCards title={"Blockbuster Movies"} category={"top_rated"} />
+        <TitleCards title={"Only on Mini-Theatre"} category={"popular"} />
+        <TitleCards title={"Upcoming"} category={"upcoming"} />
+        <TitleCards title={"Top Picks for You"} category={"now_playing"} />
+      </div>
+
+      <Footer />
+    </div>
+  )
+}
+
+export default Home

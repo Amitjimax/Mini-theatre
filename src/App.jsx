@@ -10,8 +10,9 @@ import Login from './pages/Login/Login';
 import Player from './pages/Player/Player';
 import MoviePage from './pages/MoviePage/MoviePage';
 import MovieGrid from './components/MovieGrid/MovieGrid';
+import MyList from './pages/MyList/MyList'; // ✅ ADD THIS
 
-// Reusable page component that fetches movies
+// Reusable page
 const MovieListPage = ({ title, endpoint }) => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +21,9 @@ const MovieListPage = ({ title, endpoint }) => {
     const fetchMovies = async () => {
       try {
         const API_KEY = "c1d619ddf5bd92a89665b1ead84fc1cb";
-        const res = await fetch(`https://api.themoviedb.org/3/${endpoint}?api_key=${API_KEY}&language=en-US&page=1`);
+        const res = await fetch(
+          `https://api.themoviedb.org/3/${endpoint}?api_key=${API_KEY}&language=en-US&page=1`
+        );
         const data = await res.json();
         setMovies(data.results || []);
       } catch (err) {
@@ -33,7 +36,12 @@ const MovieListPage = ({ title, endpoint }) => {
     fetchMovies();
   }, [endpoint]);
 
-  if (loading) return <p style={{ color: '#fff', textAlign: 'center', marginTop: '50px' }}>Loading {title}...</p>;
+  if (loading)
+    return (
+      <p style={{ color: '#fff', textAlign: 'center', marginTop: '50px' }}>
+        Loading {title}...
+      </p>
+    );
 
   return (
     <div style={{ backgroundColor: '#141414', minHeight: '100vh' }}>
@@ -52,6 +60,7 @@ const App = () => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setAuthLoading(false);
+
       if (!currentUser) {
         navigate('/login');
       }
@@ -61,22 +70,31 @@ const App = () => {
   }, [navigate]);
 
   if (authLoading) {
-    return <p style={{ color: '#fff', textAlign: 'center', marginTop: '50px' }}>Checking authentication...</p>;
+    return (
+      <p style={{ color: '#fff', textAlign: 'center', marginTop: '50px' }}>
+        Checking authentication...
+      </p>
+    );
   }
 
   return (
     <div>
       <ToastContainer theme='dark' />
+
       <Routes>
         {user ? (
           <>
             <Route path='/' element={<Home />} />
             <Route path='/player/:id' element={<Player />} />
             <Route path='/movie/:id' element={<MoviePage />} />
+
             <Route path='/tv-shows' element={<MovieListPage title="TV Shows" endpoint="tv/popular" />} />
             <Route path='/movies' element={<MovieListPage title="Movies" endpoint="movie/popular" />} />
             <Route path='/new-popular' element={<MovieListPage title="New & Popular" endpoint="movie/top_rated" />} />
-            <Route path='/my-list' element={<MovieListPage title="My List" endpoint="movie/popular" />} />
+
+            {/* ✅ ONLY THIS MyList */}
+            <Route path='/mylist' element={<MyList />} />
+
             <Route path='/browse-by-language' element={<MovieListPage title="Browse By Language" endpoint="movie/popular" />} />
           </>
         ) : (
